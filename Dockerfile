@@ -3,26 +3,38 @@ FROM python:3.11-alpine AS builder
 
 WORKDIR /app
 
-# Alpine'de gerekli build bağımlılıkları
+# Install build dependencies
 RUN apk add --no-cache gcc musl-dev python3-dev libffi-dev
 
-# Poetry'yi kur
+# Install Poetry
 RUN pip install -U pip poetry
 
-# Bağımlılık dosyalarını kopyala
+# Copy dependency files
 COPY pyproject.toml poetry.lock* ./
 
-# Sanal ortam oluştur ve bağımlılıkları kur
+# Install dependencies
 RUN poetry config virtualenvs.in-project true && \
     poetry install --only main --no-interaction --no-ansi --no-root
 
-# Son aşama
+# Copy the rest of the application
+COPY . .
+
+# Final stage
 FROM python:3.11-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/.venv/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder /app/.venv/bin/uvicorn /usr/local/bin/
+# Copy the virtual environment from the builder
+COPY --from=builder /app/.venv /app/.venv
+
+# Ensure the virtual environment's Python is used
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Copy the application code
 COPY main.py .
 
+# Expose the port
+EXPOSE 8000
+
+# Run the application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
