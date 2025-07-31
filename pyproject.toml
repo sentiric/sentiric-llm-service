@@ -1,0 +1,16 @@
+[project]
+name = "sentiric-llm-service"
+version = "0.1.0"
+description = "AI Gateway for Sentiric, providing access to various LLMs."
+authors = [
+    {name = "Azmi ŞAHİN", email = "6445951+azmisahin@users.noreply.github.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.29.0",
+    "structlog>=24.1.0",
+    "python-dotenv>=1.0.1",
+    "google-generativeai>=0.5.2"
+]

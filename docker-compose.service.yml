@@ -1,0 +1,21 @@
+services:
+  llm-service:
+    image: ${DOCKER_REGISTRY:-ghcr.io/sentiric}/sentiric-llm-service:${TAG:-latest}
+    container_name: sentiric_llm_service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    env_file:
+      - ./.env
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    ports:
+      - "8000:8000" # Host'un 8000 portunu konteynerin 8000 portuna yönlendir      
+    networks:
+      - sentiric-net
+    restart: unless-stopped
+
+networks:
+  sentiric-net:
+    name: ${NETWORK_NAME:-sentiric-net}
