@@ -1,21 +1,31 @@
-services:
-  llm-service:
-    image: ${DOCKER_REGISTRY:-ghcr.io/sentiric}/sentiric-llm-service:${TAG:-latest}
-    container_name: sentiric_llm_service
-    build:
-      context: .
-      dockerfile: Dockerfile
-    
-    env_file:
-      - ./.env
-    environment:
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-    ports:
-      - "8000:8000" # Host'un 8000 portunu konteynerin 8000 portuna yönlendir      
-    networks:
-      - sentiric-net
-    restart: unless-stopped
-
 networks:
   sentiric-net:
     name: ${NETWORK_NAME:-sentiric-net}
+    driver: bridge
+
+services:
+  llm-service:       
+
+      build:
+        context: .
+        dockerfile: Dockerfile
+        args:
+          SERVICE_NAME: sentiric-llm-service
+
+      env_file: 
+        - ./.env
+
+      # volumes:
+      #   - ../sentiric-infrastructure/tls/certs:/etc/sentiric/tls:ro
+
+      ports:
+        - "${LLM_SERVICE_PORT}:${LLM_SERVICE_PORT}"
+
+      networks:
+        - sentiric-net
+      
+      profiles:
+        - default
+        - ai
+
+      restart: always
