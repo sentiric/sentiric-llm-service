@@ -29,3 +29,6 @@ services:
         - ai
 
       restart: always
+
+      mem_limit: 512m
+      cpus: 0.5      
