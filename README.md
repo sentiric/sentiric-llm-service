@@ -1,88 +1,45 @@
 # 🧠 Sentiric LLM Service
 
-**Açıklama:** Bu servis, Sentiric platformunun merkezi **Büyük Dil Modeli (LLM) Ağ Geçidi (Gateway)** olarak görev yapar. `sentiric-agent-service` gibi çekirdek orkestrasyon servislerini, belirli LLM sağlayıcılarının (Google Gemini, OpenAI, vb.) karmaşıklığından ve bağımlılıklarından soyutlar.
+[![Status](https://img.shields.io/badge/status-active-success.svg)]()
+[![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
+[![Framework](https://img.shields.io/badge/framework-FastAPI-green.svg)](https://fastapi.tiangolo.com/)
+
+**Sentiric LLM Service**, Sentiric platformunun merkezi **Büyük Dil Modeli (LLM) Ağ Geçidi (Gateway)** olarak görev yapar. `sentiric-agent-service` gibi çekirdek orkestrasyon servislerini, belirli LLM sağlayıcılarının (Google Gemini, OpenAI, vb.) karmaşıklığından ve bağımlılıklarından soyutlar.
 
 Bu servis, "Adaptör Mimarisi" felsefemizin somut bir uygulamasıdır. Ana platform, "metin üret" gibi soyut bir komut verir; bu servisin görevi ise bu komutu, yapılandırılmış olan herhangi bir LLM sağlayıcısının anlayacağı dile çevirmek ve yanıtı geri iletmektir.
 
 ## 🎯 Temel Sorumluluklar
 
 *   **Tek Birleşik Arayüz:** Farklı LLM sağlayıcıları için tek ve tutarlı bir HTTP/REST arayüzü (`/generate`) sunar.
-*   **Bağımlılık İzolasyonu:** `google-generativeai` gibi potansiyel olarak çakışan veya ağır Python bağımlılıklarını, ana platformun geri kalanından tamamen izole eder. Bu, platformun genel kararlılığını korur.
+*   **Bağımlılık İzolasyonu:** `google-generativeai` gibi potansiyel olarak çakışan veya ağır Python bağımlılıklarını, ana platformun geri kalanından tamamen izole eder.
 *   **Sağlayıcı Esnekliği:** `.env` dosyasındaki basit bir değişiklikle, platformun kullandığı LLM'i (örn: Gemini'dan OpenAI'ye) kod değişikliği yapmadan değiştirmeyi sağlar.
-*   **Geleceğe Hazırlık:** Gelecekte açık kaynaklı ve yerel olarak çalıştırılan (örn: Llama 3) modeller için bir entegrasyon noktası görevi görür.
+*   **Gözlemlenebilirlik:** Gelen her istek için `trace_id` takibi yapar ve yapılandırılmış loglar üretir.
 
 ## 🛠️ Teknoloji Yığını
 
 *   **Dil:** Python
 *   **Web Çerçevesi:** FastAPI
-*   **Sunucu:** Uvicorn
 *   **Bağımlılık Yönetimi:** Poetry
+*   **AI Kütüphanesi:** `google-generativeai`
 
 ## 🔌 API Etkileşimleri
 
-*   **Gelen (Provider For):** `sentiric-agent-service`'ten (ve potansiyel olarak diğer iç servislerden) `/generate` endpoint'ine HTTP POST istekleri alır.
-*   **Giden (Client Of):** Yapılandırılmış olan harici LLM sağlayıcısının (örn: Google Gemini API) API'sine istekler gönderir.
+*   **Gelen (Sunucu):**
+    *   `sentiric-agent-service` (REST/JSON): `/generate` endpoint'ine metin üretme istekleri alır.
+*   **Giden (İstemci):**
+    *   Google Gemini API (veya yapılandırılmış diğer LLM sağlayıcıları).
 
-### API Kontratı
+## 🚀 Yerel Geliştirme
 
-**Endpoint:** `POST /generate`
-
-**İstek Gövdesi (`Request Body`):**
-```json
-{
-  "prompt": "Bir müşteri hizmetleri temsilcisi olarak 'Merhaba' de.",
-  "conversation_history": [
-    {"role": "user", "text": "Selam"},
-    {"role": "assistant", "text": "Merhaba, size nasıl yardımcı olabilirim?"}
-  ],
-  "provider": "gemini" // Opsiyonel: Gelecekte birden fazla sağlayıcıyı desteklemek için
-}
-```
-
-**Başarılı Yanıt (`Response 200 OK`):**
-```json
-{
-  "text": "Merhaba! Sentiric'e hoş geldiniz, size bugün nasıl yardımcı olabilirim?"
-}
-```
-
-## 🚀 Yerel Geliştirme (Local Development)
-
-1.  **Repo'yu Klonlayın:**
-    ```bash
-    git clone https://github.com/sentiric/sentiric-llm-service.git
-    cd sentiric-llm-service
-    ```
-2.  **Poetry'yi Kurun:** (Eğer kurulu değilse)
-    ```bash
-    pip install poetry
-    ```
-3.  **Bağımlılıkları Kurun:**
-    ```bash
-    poetry install
-    ```
-4.  **Ortam Değişkenlerini Ayarlayın:**
-    `.env.example` dosyasını `.env` olarak kopyalayın ve `GOOGLE_API_KEY`'inizi girin.
-    ```bash
-    cp .env.example .env
-    nano .env
-    ```
-5.  **Servisi Başlatın:**
-    ```bash
-    poetry run uvicorn main:app --reload
-    ```
-    Servis artık `http://localhost:8000` adresinde çalışıyor olacaktır.
-
-## 🐳 Docker ile Çalıştırma
-
-Bu servis, `sentiric-infrastructure` reposundaki merkezi `docker-compose.yml` dosyası aracılığıyla platformun bir parçası olarak çalıştırılmak üzere tasarlanmıştır.
-
-Servisi tek başına test etmek için:
-```bash
-# .env dosyanızın hazır olduğundan emin olun
-docker compose -f docker-compose.service.yml up --build
-```
+1.  **Bağımlılıkları Kurun:** `poetry install`
+2.  **Ortam Değişkenlerini Ayarlayın:** `.env.example`'ı `.env` olarak kopyalayın ve `GOOGLE_API_KEY`'inizi girin.
+3.  **Servisi Başlatın:** `poetry run uvicorn app:app --reload --port 7860`
 
 ## 🤝 Katkıda Bulunma
 
 Katkılarınızı bekliyoruz! Lütfen projenin ana [Sentiric Governance](https://github.com/sentiric/sentiric-governance) reposundaki kodlama standartlarına ve katkıda bulunma rehberine göz atın.
+
+---
+## 🏛️ Anayasal Konum
+
+Bu servis, [Sentiric Anayasası'nın (v11.0)](https://github.com/sentiric/sentiric-governance/blob/main/docs/blueprint/Architecture-Overview.md) **Zeka & Orkestrasyon Katmanı**'nda yer alan merkezi bir bileşendir.
