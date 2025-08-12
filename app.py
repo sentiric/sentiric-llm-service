@@ -1,5 +1,7 @@
+# sentiric-llm-service/app.py
 import os
 import time
+import uuid # YENİ
 import structlog
 from fastapi import FastAPI, HTTPException, Request, Response
 from pydantic import BaseModel
@@ -10,11 +12,8 @@ from structlog.contextvars import bind_contextvars, clear_contextvars
 
 # --- Konfigürasyon ve Loglama Kurulumu ---
 load_dotenv()
-
-# Ortama duyarlı loglama yapılandırması
 ENV = os.getenv("ENV", "production")
 LOG_LEVEL = logging.INFO
-
 structlog.configure(
     processors=[
         structlog.contextvars.merge_contextvars,
@@ -22,7 +21,6 @@ structlog.configure(
         structlog.processors.StackInfoRenderer(),
         structlog.dev.set_exc_info,
         structlog.processors.TimeStamper(fmt="iso"),
-        # Geliştirme için renkli konsol, üretim için JSON
         structlog.dev.ConsoleRenderer() if ENV == "development" else structlog.processors.JSONRenderer(),
     ],
     wrapper_class=structlog.make_filtering_bound_logger(LOG_LEVEL),
@@ -30,18 +28,15 @@ structlog.configure(
     logger_factory=structlog.PrintLoggerFactory(),
     cache_logger_on_first_use=True,
 )
-
-# Servis adını global log bağlamına ekliyoruz
 log = structlog.get_logger(service="llm-service")
 
 # --- Uygulama Başlatma ---
 app = FastAPI()
 
-# Gemini modelini başlatma
 try:
     api_key = os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        raise ValueError("GOOGLE_API_KEY ortam değişkeni bulunamadı.")
+    if not api_key or "YOUR" in api_key: # API key'in geçerli olup olmadığını kontrol et
+        raise ValueError("GOOGLE_API_KEY ortam değişkeni bulunamadı veya geçerli değil.")
     genai.configure(api_key=api_key)
     llm_model = genai.GenerativeModel('gemini-1.5-flash')
     log.info("gemini_adapter.initialized_successfully")
@@ -49,24 +44,19 @@ except Exception as e:
     log.critical("gemini_adapter.initialization_failed", error=str(e))
     llm_model = None
 
-# --- Middleware: Her istek için otomatik loglama ---
+# --- Middleware: Her istek için otomatik loglama ve trace_id ---
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next) -> Response:
     clear_contextvars()
     start_time = time.perf_counter()
     
-    # Gelen header'lardan call_id ve trace_id'yi yakala (varsa)
-    call_id = request.headers.get("X-Call-ID", "N/A")
-    trace_id = request.headers.get("X-Trace-ID", "N/A")
-    bind_contextvars(call_id=call_id, trace_id=trace_id)
+    # YENİ: Gelen header'dan trace_id'yi yakala, yoksa yeni bir tane oluştur.
+    trace_id = request.headers.get("X-Trace-ID") or f"trace-llm-{uuid.uuid4()}"
+    bind_contextvars(trace_id=trace_id)
 
-    # İsteği işle
     response = await call_next(request)
-
-    # İşlem süresini hesapla
     process_time = (time.perf_counter() - start_time) * 1000
     
-    # Yanıt logunu oluştur
     log.info(
         "http.request.completed",
         http_method=request.method,
@@ -93,7 +83,6 @@ async def generate_text(request: GenerateRequest):
 
     log.info("llm_service.generate.request_received", prompt_length=len(request.prompt))
     try:
-        # TODO: Konuşma geçmişi (request.conversation_history) entegrasyonu eklenecek
         response = llm_model.generate_content(request.prompt)
         response_text = response.text
         log.info("llm_service.generate.response_generated", response_length=len(response_text))
