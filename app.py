@@ -91,7 +91,8 @@ async def generate_text(request: GenerateRequest):
         log.error("gemini.api_error", error=str(e), exc_info=True)
         raise HTTPException(status_code=500, detail="Internal LLM error")
 
-@app.get("/health")
+@app.get("/health", tags=["Health"])
+@app.head("/health")
 async def health_check():
     health_status = {"status": "ok", "llm_model_loaded": bool(llm_model)}
     log.info("health_check.performed", **health_status)
