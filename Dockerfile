@@ -24,6 +24,9 @@ FROM python:3.11-alpine
 
 WORKDIR /app
 
+# YENİ: Healthcheck için curl aracını ekliyoruz.
+RUN apk add --no-cache curl
+
 # Copy the virtual environment from the builder
 COPY --from=builder /app/.venv /app/.venv
 
