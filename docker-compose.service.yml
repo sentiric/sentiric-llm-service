@@ -1,34 +1,20 @@
+# docker-compose.service.yml
+# Service Geliştirme ortamı
+
 networks:
-  sentiric-net:
-    name: ${NETWORK_NAME:-sentiric-net}
-    driver: bridge
+  sentiric-net: { name: "${NETWORK_NAME:-sentiric-net}", driver: bridge }
 
 services:
-  llm-service:       
-
-      build:
-        context: .
-        dockerfile: Dockerfile
-        args:
-          SERVICE_NAME: sentiric-llm-service
-
-      env_file: 
-        - ./.env
-
-      # volumes:
-      #   - ../sentiric-config/tls/certs:/etc/sentiric/tls:ro
-
-      ports:
-        - "${LLM_SERVICE_PORT}:${LLM_SERVICE_PORT}"
-
-      networks:
-        - sentiric-net
-      
-      profiles:
-        - default
-        - ai
-
-      restart: always
-
-      mem_limit: 512m
-      cpus: 0.5      
+  # --- AI SERVİSLERİ ---
+  llm-service:
+    build: { context: ../sentiric-llm-service }
+    env_file: ["${ENV_FILE_PATH}"]
+    ports: ["${LLM_SERVICE_PORT:-7860}:7860"]
+    networks: [sentiric-net]
+    restart: always
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:7860/health"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+        start_period: 3m   
