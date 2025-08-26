@@ -21,7 +21,11 @@ Bu faz, servisi gerçek bir "Tak-Çıkar Lego Seti" haline getirmeyi hedefler.
 
 -   [ ] **Görev ID: LLM-001 - Adaptör Deseni Refaktörü**
     -   **Açıklama:** Mevcut Gemini mantığını bir `GeminiAdapter` sınıfı içine taşı. Tüm adaptörlerin implemente edeceği bir `BaseLLMAdapter` soyut sınıfı oluştur.
-    -   **Durum:** ⬜ Planlandı.
+    -   **Kabul Kriterleri:**
+        -   [ ] `BaseLLMAdapter` oluşturulmalı.
+        -   [ ] `GeminiAdapter`, bu base sınıftan türetilmeli.
+        -   [ ] `.env` dosyasındaki `LLM_PROVIDER` değişkenine göre doğru adaptör dinamik olarak yüklenmeli.
+        
 
 -   [ ] **Görev ID: LLM-002 - OpenAI Adapter**
     -   **Açıklama:** OpenAI'nin GPT modellerini destekleyen bir `OpenAIAdapter` oluştur.
