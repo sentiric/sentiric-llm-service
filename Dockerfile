@@ -1,6 +1,11 @@
 # Multi-stage build
 FROM python:3.11-alpine AS builder
 
+# Build argümanlarını build aşamasında kullanılabilir yap
+ARG GIT_COMMIT="unknown"
+ARG BUILD_DATE="unknown"
+ARG SERVICE_VERSION="0.0.0"
+
 WORKDIR /app
 
 # Install build dependencies
@@ -36,8 +41,5 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Copy the application code
 COPY app.py .
 
-# Expose the port
-EXPOSE 7860
-
 # Run the application
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "16010"]

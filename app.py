@@ -37,15 +37,15 @@ llm_model = None
 def startup_event():
     global llm_model
     try:
-        api_key = os.getenv("GOOGLE_API_KEY")
+        api_key = os.getenv("LLM_SERVICE_API_KEY")
         if not api_key or "YOUR" in api_key:
-            raise ValueError("GOOGLE_API_KEY ortam değişkeni bulunamadı veya geçerli değil.")
+            raise ValueError("LLM_SERVICE_API_KEY ortam değişkeni bulunamadı veya geçerli değil.")
         genai.configure(api_key=api_key)
-        model_name = os.getenv("LLM_MODEL_NAME", "gemini-1.5-flash")
+        model_name = os.getenv("LLM_SERVICE_MODEL_NAME", "gemini-2.0-flash")
         llm_model = genai.GenerativeModel(model_name)
-        log.info("Gemini adapter initialized successfully", model=model_name)
+        log.info("LLM adapter initialized successfully", model=model_name)
     except Exception as e:
-        log.critical("Gemini adapter initialization failed", error=str(e))
+        log.critical("LLM adapter initialization failed", error=str(e))
         llm_model = None
 
 # --- Middleware ---
@@ -89,7 +89,7 @@ async def generate_text(request: GenerateRequest):
         log.info("Generate response successful", response_length=len(response_text))
         return GenerateResponse(text=response_text)
     except Exception as e:
-        log.error("Gemini API error", error=str(e), exc_info=True)
+        log.error("LLM API error", error=str(e), exc_info=True)
         raise HTTPException(status_code=500, detail="Internal LLM provider error")
 
 @app.get("/health", tags=["Health"])
