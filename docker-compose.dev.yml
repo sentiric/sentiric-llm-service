@@ -34,9 +34,9 @@ services:
       sentiric-net:
         ipv4_address: ${LLM_SERVICE_IPV4_ADDRESS}     
     restart: always
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:16010/health"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 5
-    #   start_period: 3m  
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:16010/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 3m 

@@ -1,3 +1,4 @@
+# app.py
 import os
 import time
 import uuid
@@ -26,11 +27,9 @@ structlog.configure(
     wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
 )
+
 log = structlog.get_logger("llm-service")
-
-# --- Uygulama Başlatma ---
 app = FastAPI(title="Sentiric LLM Service")
-
 llm_model = None
 
 @app.on_event("startup")
@@ -53,6 +52,10 @@ def startup_event():
 async def logging_middleware(request: Request, call_next) -> Response:
     clear_contextvars()
     start_time = time.perf_counter()
+
+    # YENİ: /healthz isteklerini loglamadan atla
+    if request.url.path == "/healthz":
+        return await call_next(request)
     
     trace_id = request.headers.get("X-Trace-ID") or f"llm-trace-{uuid.uuid4()}"
     bind_contextvars(trace_id=trace_id)
@@ -96,3 +99,8 @@ async def generate_text(request: GenerateRequest):
 @app.head("/health")
 async def health_check():
     return {"status": "ok", "llm_model_loaded": bool(llm_model)}
+
+# YENİ: Log basmayan basit sağlık kontrolü endpoint'i
+@app.get("/healthz", include_in_schema=False)
+async def healthz_check():
+    return Response(status_code=200)
