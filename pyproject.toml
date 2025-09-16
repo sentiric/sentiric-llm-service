@@ -16,6 +16,5 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "google-generativeai>=0.5.2",
     "colorama>=0.4.6",
-    # EKSİK OLAN BAĞIMLILIK AŞAĞIDAKİ SATIRDIR
     "pydantic-settings>=2.3.4"
 ]
