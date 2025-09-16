@@ -26,4 +26,5 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 COPY --from=builder /app/app ./app
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "16010"]
+# DÜZELTME: Standart komut formatı
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "16010", "--no-access-log"]
