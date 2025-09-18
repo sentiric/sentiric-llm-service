@@ -1,5 +1,5 @@
 # ======================================================================================
-#    SENTIRIC LLM SERVICE - POETRY & ÜRETİM OPTİMİZASYONLU DOCKERFILE v1.0
+#    SENTIRIC LLM SERVICE - POETRY & ÜRETİM OPTİMİZASYONLU DOCKERFILE v1.1
 # ======================================================================================
 
 # --- GLOBAL BUILD ARGÜMANLARI ---
@@ -32,8 +32,10 @@ RUN pip install --no-cache-dir poetry
 # Sadece bağımlılık tanımlarını kopyala
 COPY poetry.lock pyproject.toml ./
 
-# Bağımlılıkları .venv klasörü içinde izole bir şekilde kur
-RUN poetry install --without dev --no-root --sync
+# --- DÜZELTME BURADA ---
+# Bağımlılıkları kur. --no-dev, dev grubu olmasa bile hata vermez.
+RUN poetry install --no-dev --no-root --sync
+# --- DÜZELTME SONU ---
 
 # ======================================================================================
 #    STAGE 2: PRODUCTION - Hafif ve temiz imaj
