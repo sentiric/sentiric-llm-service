@@ -9,17 +9,21 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.logging import setup_logging
 
-# Servis adını burada merkezi olarak tanımlıyoruz.
 SERVICE_NAME = "llm-service"
-
 llm_model = None
-log = structlog.get_logger(SERVICE_NAME) # Modül seviyesinde logger oluşturuyoruz
+log = None # Başlangıçta None olarak tanımla
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global llm_model
-    # setup_logging'i servis adıyla çağırıyoruz.
-    setup_logging(service_name=SERVICE_NAME, log_level=settings.LOG_LEVEL, env=settings.ENV)
+    global llm_model, log
+    
+    # --- DÜZELTME BURADA ---
+    # setup_logging artık bir logger döndürmüyor, sadece yapılandırıyor.
+    setup_logging(log_level=settings.LOG_LEVEL, env=settings.ENV)
+    
+    # Ana logger'ı alıp ona servis adını kalıcı olarak bağlıyoruz.
+    log = structlog.get_logger().bind(service=SERVICE_NAME)
+    # --- DÜZELTME SONU ---
     
     log.info(
         "Application starting up...", 
@@ -61,7 +65,6 @@ async def logging_middleware(request: Request, call_next) -> Response:
     log.info("Request completed", http_status_code=response.status_code)
     return response
 
-# ... (Geri kalan endpoint'ler aynı kalabilir, çünkü hepsi `log` değişkenini kullanıyor)
 class GenerateRequest(BaseModel):
     prompt: str
 
