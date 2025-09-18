@@ -2,9 +2,9 @@
 name = "sentiric-llm-service"
 version = "0.1.0"
 description = "AI Gateway for Sentiric, providing access to various LLMs."
-authors = [
-    {name = "Azmi ŞAHİN", email = "6445951+azmisahin@users.noreply.github.com"}
-]
+# --- DÜZELTME BURADA ---
+authors = ["Azmi ŞAHİN <6445951+azmisahin@users.noreply.github.com>"]
+# --- DÜZELTME SONU ---
 readme = "README.md"
 packages = [{include = "app"}]
 
@@ -18,12 +18,9 @@ google-generativeai = ">=0.5.2"
 colorama = ">=0.4.6"
 pydantic-settings = ">=2.3.4"
 
-# --- YENİ BÖLÜM ---
-# Geliştirme bağımlılıkları için standart grup tanımı
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0"
 httpx = "^0.27.0"
-# --- BÖLÜM SONU ---
 
 [build-system]
 requires = ["poetry-core"]
