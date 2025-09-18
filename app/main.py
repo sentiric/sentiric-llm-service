@@ -17,7 +17,7 @@ log = None
 async def lifespan(app: FastAPI):
     global llm_model, log
     
-    setup_logging(service_name=SERVICE_NAME, log_level=settings.LOG_LEVEL, env=settings.ENV)
+    setup_logging(log_level=settings.LOG_LEVEL, env=settings.ENV)
     log = structlog.get_logger().bind(service=SERVICE_NAME)
     
     # --- DEĞİŞİKLİK: Log Mesajları Türkçeleştirildi ---
