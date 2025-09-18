@@ -1,5 +1,4 @@
 import os
-import time
 import uuid
 import structlog
 from fastapi import FastAPI, HTTPException, Request, Response
@@ -65,10 +64,13 @@ async def generate_text(request: GenerateRequest):
         raise HTTPException(status_code=503, detail="LLM service not available")
 
     log.info("Generate request received", prompt_length=len(request.prompt))
+    log.debug("Full prompt received", prompt=request.prompt) # Prompt'un tamamı DEBUG
+    
     try:
         response = llm_model.generate_content(request.prompt)
         response_text = response.text
         log.info("Generate response successful", response_length=len(response_text))
+        log.debug("Full response text", response_text=response_text) # Yanıtın tamamı DEBUG
         return GenerateResponse(text=response_text)
     except Exception as e:
         log.error("LLM API error", error=str(e), exc_info=True)
