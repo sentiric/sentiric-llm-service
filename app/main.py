@@ -11,22 +11,18 @@ from app.core.logging import setup_logging
 
 SERVICE_NAME = "llm-service"
 llm_model = None
-log = None # Başlangıçta None olarak tanımla
+log = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global llm_model, log
     
-    # --- DÜZELTME BURADA ---
-    # setup_logging artık bir logger döndürmüyor, sadece yapılandırıyor.
-    setup_logging(log_level=settings.LOG_LEVEL, env=settings.ENV)
-    
-    # Ana logger'ı alıp ona servis adını kalıcı olarak bağlıyoruz.
+    setup_logging(service_name=SERVICE_NAME, log_level=settings.LOG_LEVEL, env=settings.ENV)
     log = structlog.get_logger().bind(service=SERVICE_NAME)
-    # --- DÜZELTME SONU ---
     
+    # --- DEĞİŞİKLİK: Log Mesajları Türkçeleştirildi ---
     log.info(
-        "Application starting up...", 
+        "Uygulama başlatılıyor...", 
         project=settings.PROJECT_NAME,
         version=settings.SERVICE_VERSION,
         commit=settings.GIT_COMMIT,
@@ -40,13 +36,14 @@ async def lifespan(app: FastAPI):
         genai.configure(api_key=api_key)
         model_name = os.getenv("LLM_SERVICE_MODEL_NAME", "gemini-1.5-flash")
         llm_model = genai.GenerativeModel(model_name)
-        log.info("LLM adapter initialized successfully", model=model_name)
+        log.info("LLM adaptörü başarıyla başlatıldı", model=model_name)
     except Exception as e:
-        log.critical("LLM adapter initialization failed", error=str(e), exc_info=True)
+        log.critical("KRİTİK HATA: LLM adaptörü başlatılamadı", error=str(e), exc_info=True)
         llm_model = None
         
     yield
-    log.info("Application shutting down.")
+    log.info("Uygulama kapatılıyor...")
+    # --- DEĞİŞİKLİK SONU ---
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
@@ -60,9 +57,11 @@ async def logging_middleware(request: Request, call_next) -> Response:
     trace_id = request.headers.get("X-Trace-ID") or f"llm-trace-{uuid.uuid4()}"
     bind_contextvars(trace_id=trace_id)
 
-    log.info("Request received", http_method=request.method, http_path=request.url.path)
+    # --- DEĞİŞİKLİK: Log Mesajları Türkçeleştirildi ---
+    log.info("İstek alındı", http_method=request.method, http_path=request.url.path)
     response = await call_next(request)
-    log.info("Request completed", http_status_code=response.status_code)
+    log.info("İstek tamamlandı", http_status_code=response.status_code)
+    # --- DEĞİŞİKLİK SONU ---
     return response
 
 class GenerateRequest(BaseModel):
@@ -74,21 +73,23 @@ class GenerateResponse(BaseModel):
 @app.post("/generate", response_model=GenerateResponse)
 async def generate_text(request: GenerateRequest):
     if not llm_model:
-        log.error("LLM service is not available due to initialization failure.")
-        raise HTTPException(status_code=503, detail="LLM service not available")
+        log.error("LLM servisi başlatma hatası nedeniyle kullanılamıyor.")
+        raise HTTPException(status_code=503, detail="LLM servisi mevcut değil")
 
-    log.info("Generate request received", prompt_length=len(request.prompt))
-    log.debug("Full prompt received", prompt=request.prompt)
+    # --- DEĞİŞİKLİK: Log Mesajları Türkçeleştirildi ---
+    log.info("Metin üretme isteği alındı", prompt_length=len(request.prompt))
+    log.debug("Alınan tam prompt", prompt=request.prompt)
     
     try:
         response = llm_model.generate_content(request.prompt)
         response_text = response.text
-        log.info("Generate response successful", response_length=len(response_text))
-        log.debug("Full response text", response_text=response_text)
+        log.info("Metin başarıyla üretildi", response_length=len(response_text))
+        log.debug("Üretilen tam metin", response_text=response_text)
         return GenerateResponse(text=response_text)
     except Exception as e:
-        log.error("LLM API error", error=str(e), exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal LLM provider error")
+        log.error("LLM API hatası", error=str(e), exc_info=True)
+        raise HTTPException(status_code=500, detail="Dahili LLM sağlayıcı hatası")
+    # --- DEĞİŞİKLİK SONU ---
 
 @app.get("/health", tags=["Health"])
 @app.head("/health")
