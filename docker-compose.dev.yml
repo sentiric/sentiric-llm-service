@@ -35,8 +35,8 @@ services:
         ipv4_address: ${LLM_SERVICE_IPV4_ADDRESS}     
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:16010/healthz"]
+      test: ["CMD-SHELL", "nc -z localhost 16010"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 3m 
+      start_period: 3m  
