@@ -1,5 +1,5 @@
 # ======================================================================================
-#    SENTIRIC LLM SERVICE - POETRY & ÜRETİM OPTİMİZASYONLU DOCKERFILE v1.1
+#    SENTIRIC LLM SERVICE - POETRY & ÜRETİM OPTİMİZASYONLU DOCKERFILE v1.2
 # ======================================================================================
 
 # --- GLOBAL BUILD ARGÜMANLARI ---
@@ -33,8 +33,9 @@ RUN pip install --no-cache-dir poetry
 COPY poetry.lock pyproject.toml ./
 
 # --- DÜZELTME BURADA ---
-# Bağımlılıkları kur. --no-dev, dev grubu olmasa bile hata vermez.
-RUN poetry install --no-dev --no-root --sync
+# Bağımlılıkları kur (üretim için, dev bağımlılıkları hariç)
+# --no-dev yerine --without dev kullanılıyor.
+RUN poetry install --without dev --no-root --sync
 # --- DÜZELTME SONU ---
 
 # ======================================================================================
