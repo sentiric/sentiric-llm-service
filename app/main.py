@@ -9,14 +9,25 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.logging import setup_logging
 
+# Servis adını burada merkezi olarak tanımlıyoruz.
+SERVICE_NAME = "llm-service"
+
 llm_model = None
+log = structlog.get_logger(SERVICE_NAME) # Modül seviyesinde logger oluşturuyoruz
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global llm_model
-    setup_logging(log_level=settings.LOG_LEVEL, env=settings.ENV)
-    log = structlog.get_logger("lifespan")
-    log.info("Application starting up...")
+    # setup_logging'i servis adıyla çağırıyoruz.
+    setup_logging(service_name=SERVICE_NAME, log_level=settings.LOG_LEVEL, env=settings.ENV)
+    
+    log.info(
+        "Application starting up...", 
+        project=settings.PROJECT_NAME,
+        version=settings.SERVICE_VERSION,
+        commit=settings.GIT_COMMIT,
+        build_date=settings.BUILD_DATE,
+    )
     
     try:
         api_key = os.getenv("LLM_SERVICE_API_KEY")
@@ -34,13 +45,12 @@ async def lifespan(app: FastAPI):
     log.info("Application shutting down.")
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
-log = structlog.get_logger(__name__)
 
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next) -> Response:
     clear_contextvars()
     
-    if request.url.path == "/healthz":
+    if request.url.path in ["/health", "/healthz"]:
         return await call_next(request)
     
     trace_id = request.headers.get("X-Trace-ID") or f"llm-trace-{uuid.uuid4()}"
@@ -51,6 +61,7 @@ async def logging_middleware(request: Request, call_next) -> Response:
     log.info("Request completed", http_status_code=response.status_code)
     return response
 
+# ... (Geri kalan endpoint'ler aynı kalabilir, çünkü hepsi `log` değişkenini kullanıyor)
 class GenerateRequest(BaseModel):
     prompt: str
 
@@ -64,13 +75,13 @@ async def generate_text(request: GenerateRequest):
         raise HTTPException(status_code=503, detail="LLM service not available")
 
     log.info("Generate request received", prompt_length=len(request.prompt))
-    log.debug("Full prompt received", prompt=request.prompt) # Prompt'un tamamı DEBUG
+    log.debug("Full prompt received", prompt=request.prompt)
     
     try:
         response = llm_model.generate_content(request.prompt)
         response_text = response.text
         log.info("Generate response successful", response_length=len(response_text))
-        log.debug("Full response text", response_text=response_text) # Yanıtın tamamı DEBUG
+        log.debug("Full response text", response_text=response_text)
         return GenerateResponse(text=response_text)
     except Exception as e:
         log.error("LLM API error", error=str(e), exc_info=True)
