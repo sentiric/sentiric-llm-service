@@ -2,9 +2,7 @@
 name = "sentiric-llm-service"
 version = "0.1.0"
 description = "AI Gateway for Sentiric, providing access to various LLMs."
-# --- DÜZELTME BURADA ---
 authors = ["Azmi ŞAHİN <6445951+azmisahin@users.noreply.github.com>"]
-# --- DÜZELTME SONU ---
 readme = "README.md"
 packages = [{include = "app"}]
 
