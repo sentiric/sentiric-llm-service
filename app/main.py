@@ -1,3 +1,4 @@
+# sentiric-llm-service/app/main.py
 import os
 import uuid
 import structlog
@@ -17,6 +18,7 @@ log = None
 async def lifespan(app: FastAPI):
     global llm_model, log
     
+    # DEĞİŞİKLİK: setup_logging'i config'den gelen değerlerle çağır.
     setup_logging(log_level=settings.LOG_LEVEL, env=settings.ENV)
     log = structlog.get_logger().bind(service=SERVICE_NAME)
     
