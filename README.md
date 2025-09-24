@@ -31,9 +31,9 @@ Bu servis, "Adaptör Mimarisi" felsefemizin somut bir uygulamasıdır. Ana platf
 
 ## 🚀 Yerel Geliştirme
 
-1.  **Bağımlılıkları Kurun:** `poetry install`
-2.  **Ortam Değişkenlerini Ayarlayın:** `.env.example`'ı `.env` olarak kopyalayın ve `GOOGLE_API_KEY`'inizi girin.
-3.  **Servisi Başlatın:** `poetry run uvicorn app:app --reload --port 7860`
+1.  **Bağımlılıkları Yükleyin:**
+2.  **Ortam Değişkenlerini Ayarlayın:** `.env.example` dosyasını `.env` olarak kopyalayın ve gerekli değişkenleri doldurun.
+3.  **Servisi Çalıştırın:**
 
 ## 🤝 Katkıda Bulunma
 
