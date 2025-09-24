@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiric LLM Service - Prompt Atölyesi</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧠 Sentiric LLM Service</h1>
+            <p>Platformun AI beynini test edin.</p>
+        </header>
+        
+        <main>
+            <form id="llm-form">
+                <div class="form-group">
+                    <label for="prompt">Prompt</label>
+                    <textarea id="prompt" name="prompt" rows="10" placeholder="Buraya bir prompt girin. Örneğin: 'Sentiric platformunun temel felsefesi nedir?'" required></textarea>
+                </div>
+                <button type="submit" id="submit-btn">Yanıt Üret</button>
+            </form>
+            <div id="result-container" class="result-container hidden">
+                <h2>Modelin Yanıtı:</h2>
+                <div id="spinner" class="spinner hidden"></div>
+                <pre id="result-text"></pre>
+                <div id="error-message" class="error hidden"></div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>Sentiric "İletişim İşletim Sistemi"</p>
+        </footer>
+    </div>
+    <script src="{{ url_for('static', path='/script.js') }}"></script>
+</body>
+</html>
